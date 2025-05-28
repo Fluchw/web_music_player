@@ -6,8 +6,7 @@
 const backgroundImagesList = [
   "img/【哲风壁纸】日本动漫-时崎狂三 (1).png",
   "img/【哲风壁纸】日本动漫-时崎狂三.png",
-  "https://placehold.co/1920x1080/1abc9c/ecf0f1?text=Background+3&font=inter",
-  "https://placehold.co/1920x1080/8e44ad/f1c40f?text=Background+4&font=inter"
+
 ];
 
 // --- Data from former lyrics_data.js ---
@@ -101,24 +100,24 @@ const songsListFromExternalFile = [
     "src": "music/letting_go.mp3", // Your updated path
     "lyricVarName": "lettingGoLyricsData"
   },
-  {
-    "title": "Summer Breeze",
-    "artist": "Chill Beats",
-    "src": "my_audio/chill_beats_summer_breeze.mp3", 
-    "lyricVarName": "summerBreezeLyricsData"
-  },
-  {
-    "title": "Midnight Drive",
-    "artist": "Synthwave Rider",
-    "src": "my_audio/synthwave_rider_midnight_drive.mp3", 
-    "lyricVarName": "midnightDriveLyricsData"
-  },
-  {
-    "title": "Forest Whisper",
-    "artist": "Nature Sounds",
-    "src": "my_audio/nature_sounds_forest_whisper.mp3", 
-    "lyricVarName": "forestWhisperLyricsData"
-  }
+  // {
+  //   "title": "Summer Breeze",
+  //   "artist": "Chill Beats",
+  //   "src": "my_audio/chill_beats_summer_breeze.mp3", 
+  //   "lyricVarName": "summerBreezeLyricsData"
+  // },
+  // {
+  //   "title": "Midnight Drive",
+  //   "artist": "Synthwave Rider",
+  //   "src": "my_audio/synthwave_rider_midnight_drive.mp3", 
+  //   "lyricVarName": "midnightDriveLyricsData"
+  // },
+  // {
+  //   "title": "Forest Whisper",
+  //   "artist": "Nature Sounds",
+  //   "src": "my_audio/nature_sounds_forest_whisper.mp3", 
+  //   "lyricVarName": "forestWhisperLyricsData"
+  // }
 ];
 
 // Log to confirm this combined file is loaded

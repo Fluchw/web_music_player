@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多视图滚轮切换演示 (JS模块化)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Long+Cang&display=swap" rel="stylesheet">
+    <style>
+        /* --- 全局样式 --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden; 
+            margin: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: #1a1a2e; 
+        }
+
+        /* --- 进入页面样式 --- */
+        #entryPage {
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; 
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.8s ease-out, visibility 0s linear 0s;
+        }
+        #entryPage.hidden {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.8s ease-out, visibility 0s linear 0.8s;
+            pointer-events: none; 
+        }
+        #entryPage h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        #entryPage p {
+            font-size: 1.2rem;
+            margin-bottom: 0; 
+        }
+        #entryPage .scroll-prompt { 
+            margin-top: 2.5rem;
+            font-size: 1rem;
+            opacity: 0.7;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        /* --- 主内容容器 --- */
+        #mainContentContainer {
+            width: 100%;
+            height: 100%; 
+            position: relative; 
+            opacity: 0; 
+            visibility: hidden;
+        }
+        #mainContentContainer.visible {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.5s ease-in-out 0.5s; 
+        }
+
+        .view-section { 
+            width: 100%;
+            height: 100%; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute; 
+            top: 0;
+            left: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, visibility 0s linear 0.5s;
+            box-sizing: border-box;
+            overflow: hidden; 
+        }
+        .view-section.active-view {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.5s ease-in-out, visibility 0s linear 0s;
+            z-index: 10; 
+        }
+        
+        #carouselSection { /* background-color: rgba(0,0,0,0.1); */ }
+        #accordionSection { background-color: #e0e7ff; } 
+        #drawerCarouselSection { /* background-color: rgba(44, 62, 80, 0.85); */ } 
+        #parallaxSection { overflow-y: auto; overflow-x: hidden; height: 100%;} 
+
+
+        /* --- 3D 旋转木马样式 --- */
+        #carouselSection .shell {
+            position: relative;
+            width: 85vw; 
+            height: 55vw; 
+            max-width: 700px; 
+            max-height: 450px; 
+            margin: 0;
+            color: white;
+            perspective: 1000px;
+            transform-origin: center;
+        }
+        #carouselSection .content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-origin: center;
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.165, 0.84, 0.44, 1); 
+        }
+        #carouselSection .item {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            background-size: cover;
+            background-position: center;
+            -webkit-box-reflect: below 25px -webkit-linear-gradient(transparent 50%, rgba(255, 255, 255, 0.3));
+        }
+
+        /* --- 新版水平手风琴样式 (卡片式) --- */
+        .accordion-container-new { 
+            display: flex;
+            justify-content: center; 
+            align-items: center; 
+            width: 95vw; 
+            max-width: 1200px; 
+            height: 60vh; 
+            gap: 10px; 
+        }
+        .accordion-panel-new {
+            position: relative;
+            width: 100px; 
+            height: 100%; 
+            border-radius: 12px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: width 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .accordion-panel-new.active { width: 400px; }
+        .accordion-panel-new::before { 
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.3); transition: background-color 0.3s ease;
+        }
+        .accordion-panel-new:hover::before, .accordion-panel-new.active::before { background-color: rgba(0,0,0,0.1); }
+        .panel-title-new {
+            position: absolute; bottom: 15px; left: 15px; right: 15px; color: white;
+            font-size: 1.1rem; font-weight: bold; text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+            padding: 10px; background-color: rgba(0,0,0,0.3); border-radius: 0 0 8px 8px; 
+            text-align: center; opacity: 0; transform: translateY(20px);
+            transition: opacity 0.4s ease 0.1s, transform 0.4s ease 0.1s;
+        }
+        .accordion-panel-new.active .panel-title-new { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 768px) {
+            #carouselSection .shell { width: 90vw; height: 60vw; max-width: 420px; max-height: 280px; }
+            .accordion-container-new { height: 50vh; gap: 5px; }
+            .accordion-panel-new { width: 60px; }
+            .accordion-panel-new.active { width: 250px; }
+            .panel-title-new { font-size: 0.9rem; padding: 8px; }
+        }
+
+        /* --- 抽屉式轮播图样式 --- */
+        #drawerCarouselSection .drawer-layout-container { 
+            display: flex;
+            width: 100%; 
+            height: 100%;
+            background-color: transparent; 
+            overflow: hidden; 
+        }
+        .drawer-nav-list {
+            width: 280px; padding: 0; overflow-y: auto; background-color: rgba(0, 0, 0, 0.25); 
+            flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; 
+            justify-content: space-around; 
+        }
+        .drawer-nav-item {
+            display: flex; align-items: center; height: 70px; padding: 0 20px; 
+            border-radius: 0 8px 8px 0; cursor: pointer; 
+            transition: background-color 0.4s ease, width 0.4s ease, padding-left 0.4s ease;
+            color: #e0e0e0; position: relative; overflow: hidden; width: 80px; 
+        }
+        .drawer-nav-item:hover { background-color: rgba(255, 255, 255, 0.1); }
+        .drawer-nav-item.active-drawer-nav {
+            background-color: rgba(255, 255, 255, 0.2); color: #fff; font-weight: bold;
+            width: 100%; padding-left: 20px; 
+        }
+        .drawer-nav-number {
+            font-size: 2.5rem; font-weight: bold; min-width: 60px; text-align: center;
+            color: #bbb; transition: color 0.3s ease, opacity 0.4s ease; z-index: 2; 
+        }
+        .drawer-nav-item.active-drawer-nav .drawer-nav-number { color: #fff; opacity: 0.5; }
+        .drawer-nav-title {
+            font-size: 1rem; white-space: nowrap; opacity: 0; 
+            transition: opacity 0.4s ease 0.1s; position: absolute; left: 80px; 
+            top: 50%; transform: translateY(-50%); padding-right: 15px; 
+        }
+        .drawer-nav-item.active-drawer-nav .drawer-nav-title { opacity: 1; }
+        .drawer-content-area {
+            flex-grow: 1; padding: 40px; overflow-y: auto; position: relative; 
+            color: #fff; box-sizing: border-box; 
+        }
+        .drawer-content-item {
+            position: absolute; top: 40px; left: 40px; right: 40px; bottom: 40px;
+            opacity: 0; visibility: hidden; transition: opacity 0.5s ease-in-out, visibility 0s linear 0.5s;
+            overflow-y: auto; 
+        }
+        .drawer-content-item.active-drawer-content { opacity: 1; visibility: visible; transition: opacity 0.5s ease-in-out, visibility 0s linear 0s; }
+        .drawer-content-item h2 { font-size: 2.2rem; color: #fff; margin-top: 0; margin-bottom: 20px; text-shadow: 0 1px 4px rgba(0,0,0,0.7); }
+        .drawer-content-item .quote { font-size: 1rem; color: #e0e0e0; line-height: 1.8; margin-bottom: 30px; font-style: italic; border-left: 3px solid rgba(255,255,255,0.5); padding-left: 20px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+        .drawer-content-item img { width: 100%; max-width: 100%; height: auto; border-radius: 8px; margin-top: 20px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+        .drawer-content-item p:not(.quote) { font-size: 1rem; line-height: 1.7; color: #f0f0f0; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+
+        /* --- 视差滚动区块样式 --- */
+        #parallaxSection { 
+            /* overflow-y: auto;  -- 确保这个在.view-section中被正确应用 */
+        }
+        .parallax-item-container { width: 100%; }
+        .section-item { 
+            width: 100vw; height: 45vh; position: relative; display: flex; overflow: hidden; 
+        }
+        .section-item__block {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: 120%; background-repeat: no-repeat; background-position: center 0; 
+            transform: translate3d(0, 0, 0); will-change: background-position; 
+        }
+        .section-item__block::before {
+            position: absolute; top: 0; left: 0; content: ''; display: block;
+            width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.35); 
+            transition: background-color 0.3s ease;
+        }
+        .section-item:hover .section-item__block::before { background-color: rgba(0, 0, 0, 0.2); }
+        .section-item__text {
+            position: relative; width: 100%; height: 100%; display: flex;
+            align-items: center; justify-content: center; flex-direction: column;
+            font-family: 'Long Cang', cursive; color: #F1F1F1; text-align: center;
+            padding: 20px; box-sizing: border-box;
+        }
+        .section-item__text .text-title { font-size: 2.5rem; font-weight: bolder; margin-bottom: 20px; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+        .section-item__text .text-desc { font-size: 1.5rem; max-width: 80%; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+
+        /* --- 音乐播放器样式 --- */
+        #musicPlayerContainer {
+            position: fixed; bottom: 20px; right: 20px; background-color: rgba(0, 0, 0, 0.75); 
+            padding: 12px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 900; display: flex; flex-direction: column; align-items: center; 
+            opacity: 0; visibility: hidden; transition: opacity 0.5s ease-in-out, visibility 0s linear 0.5s;
+            cursor: grab; width: 300px; 
+        }
+        #musicPlayerContainer.visible { opacity: 1; visibility: visible; }
+        .song-info { width: 100%; text-align: center; margin-bottom: 8px; }
+        #musicPlayerContainer .song-title {
+            color: white; font-size: 0.9rem; font-weight: 500; display: block; 
+            max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 4px; 
+        }
+        .time-display { color: #ccc; font-size: 0.75rem; }
+        .player-controls { display: flex; align-items: center; justify-content: center; width: 100%; margin-top: 5px; }
+        #musicPlayerContainer button {
+            background: none; border: none; color: white; font-size: 1.3rem; 
+            cursor: pointer; padding: 8px 12px; outline: none; line-height: 1;
+        }
+        #musicPlayerContainer button:hover { color: #e74c3c; }
+        #musicPlayerContainer .progress-bar-container {
+            width: calc(100% - 20px); height: 6px; background-color: rgba(255,255,255,0.25);
+            border-radius: 3px; margin: 8px 10px; cursor: pointer;
+        }
+        #musicPlayerContainer .progress-bar { width: 0%; height: 100%; background-color: #e74c3c; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div id="entryPage">
+        <h1>探索新视界</h1>
+        <p>向下滑动以进入</p> 
+        <div class="scroll-prompt"> <i class="fas fa-chevron-down"></i></div>
+    </div>
+
+    <div id="mainContentContainer">
+        <div id="carouselSection" class="view-section">
+            <div class="shell">
+                <div class="content" id="carouselContent">
+                    </div>
+            </div>
+        </div>
+
+        <div id="accordionSection" class="view-section">
+            <div class="accordion-container-new" id="accordionContainerNew">
+                </div>
+        </div>
+
+        <div id="drawerCarouselSection" class="view-section">
+            <div class="drawer-layout-container">
+                <div class="drawer-nav-list" id="drawerNavList">
+                    </div>
+                <div class="drawer-content-area" id="drawerContentArea">
+                    </div>
+            </div>
+        </div>
+
+        <div id="parallaxSection" class="view-section">
+            <div class="parallax-item-container" id="parallaxItemContainer">
+                </div>
+        </div>
+    </div>
+
+    <div id="musicPlayerContainer">
+        <audio id="backgroundMusic" loop></audio>
+        <div class="song-info">
+            <span class="song-title" id="songTitle">歌曲名称</span>
+            <div class="time-display">
+                <span id="currentTimeDisplay">0:00</span> / <span id="totalDurationDisplay">0:00</span>
+            </div>
+        </div>
+        <div class="progress-bar-container" id="progressBarContainer">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="player-controls">
+            <button id="prevSongButton"><i class="fas fa-backward-step"></i></button>
+            <button id="playPauseButton"><i class="fas fa-play"></i></button>
+            <button id="nextSongButton"><i class="fas fa-forward-step"></i></button>
+        </div>
+    </div>
+
+    <script src="carousel.js"></script>
+    <script src="accordion.js"></script>
+    <script src="drawerCarousel.js"></script>
+    <script src="parallax.js"></script>
+    <script src="main.js"></script> 
+</body>
+</html>
