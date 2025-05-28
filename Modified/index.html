@@ -3,21 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>多视图滚轮切换演示 (解耦V2)</title> <script src="https://cdn.tailwindcss.com"></script>
+    <title>夏以昼印象站</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Long+Cang&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-</head>
+    <link href="https://fonts.googleapis.com/css2?family=Long+Cang&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> 
+    </head>
 <body>
-    <iframe id="background-iframe" src="/hd/black_hole.html"></iframe>
-
-    <div id="entryPage">
-        <h1></h1>
-        <p></p>
-        <div class="scroll-prompt"> <i class="fas fa-chevron-down"></i></div>
+    <iframe id="blackHoleIframe" src="black_hole.html"></iframe>
+    
+    <div id="colorControlPanel" class="color-control-panel">
+        <div class="color-inputs">
+            <div class="color-input-group">
+                <label>内圈颜色:</label>
+                <input type="color" id="innerColorInput" value="#FFAA33">
+            </div>
+            <div class="color-input-group">
+                <label>外圈颜色:</label>
+                <input type="color" id="outerColorInput" value="#89CFF0">
+            </div>
+        </div>
+        <div class="color-presets">
+            <button id="defaultColors1">默认方案1</button>
+            <button id="defaultColors2">默认方案2</button>
+            <button id="resetColors">重置当前</button>
+        </div>
     </div>
+
+    <div id="controlTips" class="tips-container">
+        <div><i class="fas fa-mouse"></i> 按住左键调整视角</div>
+        <div><i class="fas fa-mouse-wheel"></i> 滚轮进行缩放</div>
+    </div>
+    <div class="scroll-down-indicator visible">
+        <i class="fas fa-chevron-down"></i>
+        <i class="fas fa-chevron-down"></i>
+        <i class="fas fa-chevron-down"></i>
+    </div>
+
+    <button id="toggleEditModeButton">查看更多 <i class="fas fa-chevron-down"></i></button>
 
     <div id="mainContentContainer">
         <div id="carouselSection" class="view-section">
@@ -25,18 +50,15 @@
                 <div class="content" id="carouselContent"></div>
             </div>
         </div>
-
         <div id="accordionSection" class="view-section">
             <div class="accordion-container-new" id="accordionContainerNew"></div>
         </div>
-
         <div id="drawerCarouselSection" class="view-section">
             <div class="drawer-layout-container">
                 <div class="drawer-nav-list" id="drawerNavList"></div>
                 <div class="drawer-content-area" id="drawerContentArea"></div>
             </div>
         </div>
-
         <div id="parallaxSection" class="view-section">
             <div class="parallax-item-container" id="parallaxItemContainer"></div>
         </div>
@@ -44,23 +66,12 @@
 
     <div id="musicPlayerContainer">
         <audio id="backgroundMusic" loop></audio>
-        <div class="song-info">
-            <span class="song-title" id="songTitle">歌曲名称</span>
-            <div class="time-display">
-                <span id="currentTimeDisplay">0:00</span> / <span id="totalDurationDisplay">0:00</span>
-            </div>
-        </div>
-        <div class="progress-bar-container" id="progressBarContainer">
-            <div class="progress-bar" id="progressBar"></div>
-        </div>
-        <div class="player-controls">
-            <button id="prevSongButton"><i class="fas fa-backward-step"></i></button>
-            <button id="playPauseButton"><i class="fas fa-play"></i></button>
-            <button id="nextSongButton"><i class="fas fa-forward-step"></i></button>
-        </div>
+        <div class="song-info"> <span class="song-title" id="songTitle">歌曲名称</span> <div class="time-display"> <span id="currentTimeDisplay">0:00</span> / <span id="totalDurationDisplay">0:00</span> </div> </div>
+        <div class="progress-bar-container" id="progressBarContainer"> <div class="progress-bar" id="progressBar"></div> </div>
+        <div class="player-controls"> <button id="prevSongButton"><i class="fas fa-backward-step"></i></button> <button id="playPauseButton"><i class="fas fa-play"></i></button> <button id="nextSongButton"><i class="fas fa-forward-step"></i></button> </div>
     </div>
 
-    <script src="config.js"></script>       
-    <script src="script.js" defer></script> 
+    <script src="config.js"></script>
+    <script src="script.js" defer></script>
 </body>
 </html>

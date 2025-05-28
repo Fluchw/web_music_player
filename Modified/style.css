@@ -1,5 +1,4 @@
 /* --- 全局样式 --- */
-
 body {
     font-family: 'Inter', sans-serif;
     display: flex;
@@ -7,135 +6,255 @@ body {
     justify-content: center;
     flex-direction: column;
     height: 100vh;
-    overflow: hidden; /* 保持，以防止主页面不必要的滚动 */
+    overflow: hidden; 
     margin: 0;
-    /* 移除或注释掉原来的背景图片相关样式 */
-    /* background-size: cover; */
-    /* background-position: center center; */
-    /* background-repeat: no-repeat; */
-    /* background-attachment: fixed; */
-    background-color: #4dfaa9; /* 保留作为 iframe 加载失败时的备用背景色 */
-    position: relative; /* 建议添加，为子元素的 z-index 提供明确的堆叠上下文 */
+    background-color: #000000; /* Fallback, actual background is iframe */
+    position: relative; 
 }
 
-/* 新增：用于背景 iframe 的样式 */
-#background-iframe {
-    position: fixed; /* 固定在视口，不随滚动条滚动 */
+#blackHoleIframe {
+    position: fixed; 
     top: 0;
     left: 0;
-    width: 100vw; /* 占据整个视口宽度 */
-    height: 100vh; /* 占据整个视口高度 */
-    border: none; /* 移除 iframe 边框 */
-    z-index: -1;  /* 将 iframe 置于所有其他内容的后面 */
-    pointer-events: none; /* 允许鼠标事件穿透 iframe，操作前景内容 */
-}
-
-/* 确保你的主要内容容器在 iframe 之上 */
-/* 通常，如果 iframe 的 z-index 是 -1，其他正常文档流的元素或 position:relative 的元素
-    会自动在其之上。如果你的这些容器也使用了 position:fixed 或 absolute，
-    确保它们的 z-index > -1 */
-#entryPage,
-#mainContentContainer,
-#musicPlayerContainer {
-    position: relative; /* 或者它们现有的 position 值 */
-    z-index: 1;     /* 确保在 iframe (z-index: -1) 之上 */
-}
-
-/* --- 进入页面样式 --- */
-#entryPage {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #2c3e50;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+    width: 100vw; 
+    height: 100vh; 
+    border: none; 
     opacity: 1;
-    visibility: visible;
-    transition: opacity 0.8s ease-out, visibility 0s linear 0s;
-}
-#entryPage.hidden {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.8s ease-out, visibility 0s linear 0.8s;
-    pointer-events: none;
-}
-#entryPage h1 {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-}
-#entryPage p {
-    font-size: 1.2rem;
-    margin-bottom: 0;
-}
-#entryPage .scroll-prompt {
-    margin-top: 2.5rem;
-    font-size: 1rem;
-    opacity: 0.7;
-    animation: bounce 2s infinite;
-}
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-10px); }
-    60% { transform: translateY(-5px); }
+    transition: opacity 0.5s ease-in-out, z-index 0s linear 0s; 
 }
 
-/* --- 主内容容器 --- */
+#blackHoleIframe.is-interactive-fullscreen {
+    z-index: 1; 
+    pointer-events: auto;
+}
+
+#blackHoleIframe.is-background-for-content {
+    z-index: -1; 
+    pointer-events: none;
+    opacity: 0.7; 
+}
+
+#toggleEditModeButton {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10; 
+    padding: 12px 25px;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    backdrop-filter: blur(5px);
+    transition: background-color 0.3s; 
+}
+#toggleEditModeButton:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
 #mainContentContainer {
+    position: relative; 
+    z-index: 5; 
+    display: none; 
+    background-color: transparent; 
     width: 100%;
-    height: 100%;
-    position: relative;
-    opacity: 0;
-    visibility: hidden;
+    height: 100%; 
+    overflow-y: auto; 
 }
 #mainContentContainer.visible {
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.5s ease-in-out 0.5s;
+    display: block;
 }
 
 .view-section {
     width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
+    min-height: 100vh; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    /* padding: 40px 20px; /* REMOVED this line to fix centering */
+    box-sizing: border-box;
+    position: absolute; 
     top: 0;
     left: 0;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.5s ease-in-out, visibility 0s linear 0.5s;
-    box-sizing: border-box;
-    overflow: hidden;
+    color: #f0f0f0;
 }
 .view-section.active-view {
     opacity: 1;
     visibility: visible;
     transition: opacity 0.5s ease-in-out, visibility 0s linear 0s;
-    z-index: 10;
+    z-index: 10; 
+}
+ #carouselSection, #accordionSection, #drawerCarouselSection { 
+     background-color: transparent; 
+ }
+ #parallaxSection { 
+    overflow-y: auto; 
+    overflow-x: hidden; 
+    height: 100%;
+    display: block; /* Parallax uses block display, not flex centering for its main container */
+    /* align-items: flex-start; /* Not needed if display: block */
+    /* justify-content: flex-start; /* Not needed if display: block */
+    padding: 40px 20px; /* Parallax might need its own padding for content */
 }
 
-/* #carouselSection { background-color: rgba(0,0,0,0.1); } */
-/* #accordionSection { background-color: #e0e7ff; } */
-/* #drawerCarouselSection { /* background-color: rgba(44, 62, 80, 0.85); */ 
-#parallaxSection { overflow-y: auto; overflow-x: hidden; height: 100%;}
+
+/* --- 音乐播放器样式 --- */
+#musicPlayerContainer {
+    position: fixed;
+    top: 20px; 
+    left: 50%;
+    transform: translateX(-50%); 
+    bottom: auto; 
+    right: auto;  
+    width: 70%;   
+    max-width: 800px; 
+    height: 65px;   
+    padding: 0 20px; 
+    background-color: rgba(0, 0, 0, 0.85); 
+    border-radius: 35px; 
+    box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+    z-index: 900; 
+    display: flex;
+    flex-direction: row; 
+    align-items: center; 
+    justify-content: space-between; 
+    opacity: 0; 
+    visibility: hidden;
+    transition: opacity 0.5s ease-in-out, visibility 0s linear 0.5s;
+    cursor: grab;
+}
+
+#musicPlayerContainer.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.song-info {
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-start; 
+    margin-right: 15px; 
+    flex-shrink: 0; 
+    text-align: left; 
+}
+
+#musicPlayerContainer .song-title {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: block;
+    max-width: 180px; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px; 
+}
+
+.time-display {
+    color: #ccc;
+    font-size: 0.75rem;
+}
+
+#musicPlayerContainer .progress-bar-container {
+    flex-grow: 1; 
+    height: 8px;  
+    background-color: rgba(255,255,255,0.25);
+    border-radius: 4px; 
+    cursor: pointer;
+    margin: 0 10px; 
+}
+#musicPlayerContainer .progress-bar {
+    height: 100%;
+    background-color: #e74c3c; 
+    border-radius: 4px; 
+    width: 0%; 
+}
+
+.player-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 15px; 
+    flex-shrink: 0; 
+    gap: 8px; /* 添加按钮之间的间距 */
+}
+
+#musicPlayerContainer button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem; 
+    cursor: pointer;
+    padding: 8px 10px; 
+    outline: none;
+    line-height: 1; 
+}
+
+#musicPlayerContainer button:hover {
+    color: #e74c3c; 
+}
+
+.player-controls button:last-child {
+    margin-left: 4px; /* 为播放模式按钮添加额外间距 */
+}
 
 
-/* --- 3D 旋转木马样式 --- */
+.scroll-down-indicator {
+    position: fixed;
+    top: 50%; /* 改为垂直居中 */
+    right: 30px;
+    transform: translateY(-50%); /* 配合垂直居中 */
+    z-index: 999;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 24px; /* 稍微调小字体 */
+    text-align: center; /* 文字居中 */
+    text-shadow: 0 0 8px rgba(0,0,0,0.8);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+
+.scroll-down-indicator.visible {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0s linear;
+}
+
+.scroll-down-indicator::before {
+    content: "向下滑动"; /* 添加文字 */
+    font-size: 14px;
+    margin-bottom: 10px;
+    white-space: nowrap;
+}
+.scroll-down-indicator i {
+    animation: bounceVerticalScroll 2s infinite;
+    display: block;
+}
+.scroll-down-indicator i:nth-child(2) {
+    animation-delay: 0.2s;
+}
+.scroll-down-indicator i:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes bounceVerticalScroll { 
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-6px); }
+}
+
+/* Carousel Styles */
 #carouselSection .shell {
     position: relative;
     width: 85vw;
     height: 55vw;
     max-width: 700px;
     max-height: 450px;
-    margin: 0;
     color: white;
     perspective: 1000px;
     transform-origin: center;
@@ -162,247 +281,112 @@ body {
     -webkit-box-reflect: below 25px -webkit-linear-gradient(transparent 50%, rgba(255, 255, 255, 0.3));
 }
 
-/* --- 新版水平手风琴样式 (卡片式) --- */
+/* Accordion Styles */
 .accordion-container-new {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 95vw;       /* 保持视口宽度的百分比，使其具有响应性 */
-    max-width: 1500px;  /* 增加最大宽度，原为 1200px */
-    height: 75vh;       /* 增加高度，原为 60vh */
-    gap: 15px;          /* 可以适当增加间隙，原为 10px */
+    width: 95vw;      
+    max-width: 1500px; 
+    height: 75vh;      
+    gap: 15px;         
 }
-
 .accordion-panel-new {
     position: relative;
-    width: 120px;       /* 增加折叠后面板的宽度，原为 100px */
-    height: 100%;       /* 高度占满容器，将自动适应新的容器高度 */
-    border-radius: 16px;/* 可以适当增加圆角，原为 12px */
+    width: 120px;      
+    height: 100%;      
+    border-radius: 16px;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     cursor: pointer;
     overflow: hidden;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25); /* 可以稍微调整阴影 */
-    transition: width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1); /* 过渡时间可以稍长一点 */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25); 
+    transition: width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1); 
 }
-
-.accordion-panel-new.active {
-    width: 1500px;       /* 大幅增加展开后面板的宽度，原为 400px */
-}
-
+.accordion-panel-new.active { width: 1500px; } 
 .accordion-panel-new::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.35); /* 可以微调遮罩透明度 */
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.35); 
     transition: background-color 0.3s ease;
 }
-
-.accordion-panel-new:hover::before,
-.accordion-panel-new.active::before {
-    background-color: rgba(0,0,0,0.15); /* 悬停和激活时遮罩更透明 */
-}
-
+.accordion-panel-new:hover::before, .accordion-panel-new.active::before { background-color: rgba(0,0,0,0.15); }
 .panel-title-new {
-    position: absolute;
-    bottom: 20px;       /* 调整标题位置 */
-    left: 20px;
-    right: 20px;
-    color: white;
-    font-size: 1.4rem;  /* 增加标题字体大小，原为 1.1rem */
-    font-weight: bold;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.65); /* 增强文字阴影 */
-    padding: 12px 15px; /* 调整标题内边距 */
-    background-color: rgba(0,0,0,0.4); /* 调整标题背景透明度 */
-    border-radius: 0 0 10px 10px; /* 调整标题圆角 */
-    text-align: center;
-    opacity: 0;
-    transform: translateY(25px); /* 调整初始位移 */
-    transition: opacity 0.5s ease 0.15s, transform 0.5s ease 0.15s; /* 调整过渡效果 */
+    position: absolute; bottom: 20px; left: 20px; right: 20px; color: white;
+    font-size: 1.4rem; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.65); 
+    padding: 12px 15px; background-color: rgba(0,0,0,0.4); 
+    border-radius: 0 0 10px 10px; text-align: center; opacity: 0;
+    transform: translateY(25px); 
+    transition: opacity 0.5s ease 0.15s, transform 0.5s ease 0.15s; 
 }
+.accordion-panel-new.active .panel-title-new { opacity: 1; transform: translateY(0); }
 
-.accordion-panel-new.active .panel-title-new {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* 针对小屏幕的媒体查询也可能需要调整 */
-@media (max-width: 768px) {
-    #carouselSection .shell { width: 90vw; height: 60vw; max-width: 420px; max-height: 280px; } /* 这个是旋转木马的，与手风琴无关 */
-
-    .accordion-container-new {
-        height: 60vh;       /* 移动设备上也可以适当增加高度，原为 50vh */
-        gap: 8px;           /* 调整间隙 */
-        width: 98vw;        /* 在小屏幕上几乎占满宽度 */
-    }
-    .accordion-panel-new {
-        width: 80px;        /* 移动设备上折叠宽度，原为 60px */
-        border-radius: 10px;
-    }
-    .accordion-panel-new.active {
-        width: 320px;       /* 移动设备上展开宽度，原为 250px */
-    }
-    .panel-title-new {
-        font-size: 1rem;    /* 移动设备上标题字体大小，原为 0.9rem */
-        padding: 10px;
-        bottom: 15px;
-        left: 15px;
-        right: 15px;
-    }
-}
-
-/* --- 抽屉式轮播图样式 --- */
-#drawerCarouselSection .drawer-layout-container {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    background-color: transparent;
-    overflow: hidden;
+/* Drawer Carousel Styles */
+#drawerCarouselSection .drawer-layout-container { 
+    display: flex; 
+    width: 100%; 
+    height: 100vh; /* 改为 100vh 以铺满整个视口高度 */
+    background-color: transparent; 
+    overflow: hidden; 
+    padding: 0; /* 移除内边距以最大化空间利用 */
+    box-sizing: border-box;
 }
 
 .drawer-nav-list {
-    width: 280px;
-    padding: 0;
-    overflow-y: auto;
-    background-color: rgba(0, 0, 0, 0.25); /* 导航栏背景色 */
+    width: 320px;
+    padding: 20px 0;
+    background-color: rgba(0, 0, 0, 0.4);
     flex-shrink: 0;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
-    z-index: 5; /*确保导航在背景之上，但在内容项之下或同级（如果内容项有自己的z-index）*/
+    justify-content: space-evenly; /* 修改为均匀分布 */
+    align-items: center; /* 水平居中 */
+    gap: 0; /* 移除间距,因为用space-evenly */
+    min-height: 100%; /* 确保充满高度 */
+    z-index: 5;
+    border-right: 1px solid rgba(255, 255, 255, 0.1); /* 添加分隔线 */
 }
 
-/* ... (样式 .drawer-nav-item, .drawer-nav-number, .drawer-nav-title 保持不变) ... */
 .drawer-nav-item {
-    display: flex; align-items: center; height: 70px; padding: 0 20px;
-    border-radius: 0 8px 8px 0; cursor: pointer;
-    transition: background-color 0.4s ease, width 0.4s ease, padding-left 0.4s ease;
-    color: #e0e0e0; position: relative; overflow: hidden; width: 80px;
+    height: 80px; /* 增加高度 */
+    padding: 0 20px;
+    margin: 0 15px; /* 添加左右margin */
+    border-radius: 12px; /* 增加圆角 */
+    cursor: pointer;
+    transition: all 0.4s ease;
+    color: #e0e0e0; 
+    position: relative; 
+    overflow: hidden; 
+    width: calc(100% - 30px); /* 考虑margin的宽度 */
 }
-.drawer-nav-item:hover { background-color: rgba(255, 255, 255, 0.1); }
-.drawer-nav-item.active-drawer-nav {
-    background-color: rgba(255, 255, 255, 0.2); color: #fff; font-weight: bold;
-    width: 100%; padding-left: 20px;
-}
-.drawer-nav-number {
-    font-size: 2.5rem; font-weight: bold; min-width: 60px; text-align: center;
-    color: #bbb; transition: color 0.3s ease, opacity 0.4s ease; z-index: 2;
-}
-.drawer-nav-item.active-drawer-nav .drawer-nav-number { color: #fff; opacity: 0.5; }
-.drawer-nav-title {
-    font-size: 1rem; white-space: nowrap; opacity: 0;
-    transition: opacity 0.4s ease 0.1s; position: absolute; left: 80px;
-    top: 50%; transform: translateY(-50%); padding-right: 15px;
-}
-.drawer-nav-item.active-drawer-nav .drawer-nav-title { opacity: 1; }
 
+.drawer-nav-item:hover { background-color: rgba(255, 255, 255, 0.1); }
+.drawer-nav-item.active-drawer-nav { 
+    background-color: rgba(255, 255, 255, 0.15); 
+    color: #fff; 
+    font-weight: bold; 
+}
 
 .drawer-content-area {
     flex-grow: 1;
-    position: relative; /* Crucial for pseudo-elements and absolute positioning of content items */
-    color: #fff;
-    box-sizing: border-box;
-    overflow: hidden; /* Hide parts of background image that don't fit if not using 'cover' */
-
-    /* --- Styles for background image --- */
-    background-size: cover;
-    background-position: center center;
+    background-size: contain;
     background-repeat: no-repeat;
-    /* A direct transition on background-image can be janky.
-       For smoother fades, you'd typically use two layered elements or pseudo-elements and fade opacity.
-       This provides a basic, potentially less smooth, transition. */
-    transition: background-image 0.7s ease-in-out;
-}
-
-/* Optional: Dark overlay for better text readability over various backgrounds */
-.drawer-content-area::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.45); /* Adjust darkness/opacity here */
-    z-index: 1; /* Place overlay above the background image but below the text content */
-    pointer-events: none; /* Allow clicks to pass through to content if needed */
+    background-position: center center;
+    background-color: rgba(0, 0, 0, 0.3);
 }
 
 .drawer-content-item {
-    position: absolute;
-    top: 0; /* Make it fill the parent .drawer-content-area */
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 40px; /* Padding for the text content inside */
-    box-sizing: border-box;
-
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.5s ease-in-out, visibility 0s linear 0.5s;
-    overflow-y: auto; /* Allow text content to scroll if it's long */
-    z-index: 2; /* Place text content above the overlay */
+    display: none; /* 隐藏文字内容 */
 }
 
-.drawer-content-item.active-drawer-content {
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.5s ease-in-out 0.2s, visibility 0s linear 0s; /* Added small delay for opacity */
-}
-
-/* Text styles remain largely the same, but ensure they have good contrast */
-.drawer-content-item h2 {
-    font-size: 2.4rem; /* Slightly larger */
-    color: #ffffff; /* Ensure it's white for contrast */
-    margin-top: 0;
-    margin-bottom: 25px;
-    text-shadow: 0 2px 5px rgba(0,0,0,0.7); /* Stronger shadow for readability */
-}
-
-.drawer-content-item .quote {
-    font-size: 1.1rem; /* Slightly larger */
-    color: #f0f0f0; /* Light color */
-    line-height: 1.8;
-    margin-bottom: 30px;
-    font-style: italic;
-    border-left: 4px solid rgba(255,255,255,0.6); /* Slightly thicker/more opaque border */
-    padding-left: 25px;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.6); /* Shadow for readability */
-}
-
-.drawer-content-item p:not(.quote) {
-    font-size: 1rem;
-    line-height: 1.7;
-    color: #e8e8e8; /* Light color */
-    text-shadow: 0 1px 3px rgba(0,0,0,0.5); /* Shadow for readability */
-}
-
-/* Remove the old .drawer-content-item img style as it's no longer an inline image */
-/*
-.drawer-content-item img {
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-}
-*/
-
-/* --- 视差滚动区块样式 --- */
-/* #parallaxSection {
-    /* overflow-y: auto;  -- 确保这个在.view-section中被正确应用 */
-/* } */ 
+/* Parallax Styles */
+#parallaxSection { 
+    display: block; 
+    /* padding applied above */
+} 
 .parallax-item-container { width: 100%; }
-.section-item {
-    width: 100vw; height: 45vh; position: relative; display: flex; overflow: hidden;
-}
+.section-item { width: 100vw; height: 45vh; position: relative; display: flex; overflow: hidden; }
 .section-item__block {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background-size: 120%; background-repeat: no-repeat; background-position: center 0;
@@ -423,111 +407,145 @@ body {
 .section-item__text .text-title { font-size: 2.5rem; font-weight: bolder; margin-bottom: 20px; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
 .section-item__text .text-desc { font-size: 1.5rem; max-width: 80%; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
 
-/* --- 音乐播放器样式 --- */
-#musicPlayerContainer {
-    position: fixed;
-    /* 定位到中上 */
-    top: 20px; /* 距离顶部20px */
-    left: 50%;
-    transform: translateX(-50%); /* 水平居中 */
-    bottom: auto; /* 移除之前的bottom定位 */
-    right: auto;  /* 移除之前的right定位 */
 
-    /* 长条状外观 */
-    width: 70%;   /* 或者一个固定宽度如 600px, 800px */
-    max-width: 800px; /* 最大宽度，避免在大屏幕上过宽 */
-    height: 65px;   /* 调整高度使其更像长条 */
-    padding: 0 20px; /* 左右内边距，上下内边距通过align-items控制 */
+/* Media Queries for smaller screens */
+@media (max-width: 768px) {
+    #carouselSection .shell { width: 90vw; height: 60vw; max-width: 420px; max-height: 280px; }
+    .accordion-container-new { height: 60vh; gap: 8px; width: 98vw; }
+    .accordion-panel-new { width: 80px; border-radius: 10px; }
+    .accordion-panel-new.active { width: 320px; }
+    .panel-title-new { font-size: 1rem; padding: 10px; bottom: 15px; left: 15px; right: 15px; }
 
-    background-color: rgba(0, 0, 0, 0.85); /* 可以稍微调整透明度 */
-    border-radius: 35px; /* 圆角使其两端更平滑 */
-    box-shadow: 0 5px 20px rgba(0,0,0,0.6);
-    z-index: 900;
+    .drawer-nav-list { 
+        width: 260px; /* 减小导航宽度 */
+        padding: 15px 0; 
+    }
+    
+    .drawer-content-item {
+        padding: 30px; /* 减小内边距 */
+    }
+    
+    .drawer-content-item h2 { 
+        font-size: 2.5rem; /* 减小标题字号 */
+    }
+    
+    .drawer-content-item .quote {
+        font-size: 1.2rem; /* 减小引用字号 */
+    }
 
-    /* Flex布局，让子元素水平排列 */
-    display: flex;
-    flex-direction: row; /* 水平排列 */
-    align-items: center; /* 垂直居中子元素 */
-    justify-content: space-between; /* 子元素间留有空间，或者用gap */
+    #parallaxSection { padding: 20px 10px; /* Adjust padding for smaller screens */ }
+    .section-item__text .text-title { font-size: 2rem; }
+    .section-item__text .text-desc { font-size: 1.2rem; }
 
-    opacity: 0; /* 保持初始隐藏，由JS控制显示 */
-    visibility: hidden;
-    transition: opacity 0.5s ease-in-out, visibility 0s linear 0.5s;
-    cursor: grab;
+    #musicPlayerContainer {
+        width: 90%; 
+        height: 60px;
+        padding: 0 15px;
+    }
+    #musicPlayerContainer .song-title { max-width: 100px; font-size: 0.8rem; } 
+    .time-display { font-size: 0.7rem; }
+    #musicPlayerContainer button { font-size: 1rem; padding: 6px 8px; }
 }
 
-#musicPlayerContainer.visible {
+/* Tips Container Styles */
+.tips-container {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+
+.tips-container.visible {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0s linear;
+}
+
+.tips-container i {
+    margin-right: 8px;
+    opacity: 0.8;
+}
+
+/* 调整现有的 setIframeState 相关样式 */
+#blackHoleIframe.is-interactive-fullscreen + .tips-container {
     opacity: 1;
     visibility: visible;
 }
 
-/* 歌曲信息区调整 */
-.song-info {
-    display: flex;
-    flex-direction: column; /* 标题和时间上下排列 */
-    align-items: flex-start; /* 左对齐 */
-    /* width: auto; */ /* 移除固定宽度，让其内容决定 */
-    margin-right: 15px; /* 与进度条的间距 */
-    flex-shrink: 0; /* 防止被压缩 */
-    text-align: left; /* 确保文本左对齐 */
+#blackHoleIframe.is-background-for-content + .tips-container {
+    opacity: 0;
+    visibility: hidden;
 }
 
-#musicPlayerContainer .song-title {
+/* Color Control Panel Styles */
+.color-control-panel {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    border-radius: 10px;
     color: white;
-    font-size: 0.9rem;
-    font-weight: 500;
+    z-index: 1000;
+    display: none;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.color-control-panel.visible {
     display: block;
-    max-width: 180px; /* 限制标题最大宽度，避免过长 */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 2px; /* 标题和时间显示间的小间距 */
 }
 
-.time-display {
-    color: #ccc;
-    font-size: 0.75rem;
+.color-inputs {
+    margin-bottom: 15px;
 }
 
-/* 进度条容器调整 */
-#musicPlayerContainer .progress-bar-container {
-    flex-grow: 1; /* 占据大部分可用空间 */
-    height: 8px;  /* 可以稍微加高一点 */
-    background-color: rgba(255,255,255,0.25);
-    border-radius: 4px; /* 相应调整圆角 */
-    /* margin: 0 15px; */ /* 调整外边距，因为父级有了padding和子元素间用gap或justify-content */
-    cursor: pointer;
-}
-#musicPlayerContainer .progress-bar {
-    height: 100%;
-    background-color: #e74c3c;
-    border-radius: 4px; /* 相应调整圆角 */
-    width: 0%; /* 初始为0 */
-}
-
-
-/* 播放控制按钮区调整 */
-.player-controls {
+.color-input-group {
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin-left: 15px; /* 与进度条的间距 */
-    flex-shrink: 0; /* 防止被压缩 */
-    /* width: auto; */ /* 移除固定宽度 */
-    /* margin-top: 0; */ /* 在flex row布局下，此项不再需要 */
+    gap: 10px;
 }
 
-#musicPlayerContainer button {
-    background: none;
+.color-input-group label {
+    min-width: 70px;
+}
+
+.color-input-group input[type="color"] {
+    width: 50px;
+    height: 25px;
+    padding: 0;
     border: none;
-    color: white;
-    font-size: 1.2rem; /* 可以稍微调整按钮大小 */
-    cursor: pointer;
-    padding: 8px 10px; /* 调整按钮内边距 */
-    outline: none;
-    line-height: 1;
+    border-radius: 4px;
 }
 
-#musicPlayerContainer button:hover {
-    color: #e74c3c;
+.color-presets {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.color-presets button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.color-presets button:hover {
+    background: rgba(255, 255, 255, 0.3);
 }

@@ -2,22 +2,24 @@
 const CarouselModule = (function() {
     let config = {};
     let switchToNextViewCallback = null;
-    let switchToPrevViewCallback = null; // Added
+    let switchToPrevViewCallback = null; 
 
     function setup() {
-        console.log("CarouselModule: setup started. Config:", JSON.parse(JSON.stringify(config))); // Log a copy
+        // Ensure content and shell elements are present
         if (!config.contentElement || !config.shellElement) {
-            console.error("CarouselModule: Content or Shell element not found!", config.contentElement, config.shellElement);
             if (config.contentElement) config.contentElement.innerHTML = '<p style="color:white; text-align:center;">旋转木马容器配置错误</p>';
             return;
         }
+        // Ensure there are images to display
         if (!config.itemImageUrls || config.itemImageUrls.length === 0) {
             config.contentElement.innerHTML = '<p style="color:white; text-align:center;">没有配置旋转木马图片</p>';
             return;
         }
+        // Calculate angle increment for item rotation
         config.angleIncrement = 360 / config.itemImageUrls.length;
         config.items = [];
-        config.contentElement.innerHTML = '';
+        config.contentElement.innerHTML = ''; // Clear previous items
+        // Create and append items to the carousel
         config.itemImageUrls.forEach((url, index) => {
             const itemElement = document.createElement('div');
             itemElement.classList.add('item');
@@ -27,18 +29,14 @@ const CarouselModule = (function() {
             config.contentElement.appendChild(itemElement);
             config.items.push(itemElement);
         });
-        console.log("CarouselModule: setup finished. Items created:", config.items.length);
-        updateTransform();
+        updateTransform(); // Apply initial transform
     }
 
     function updateTransform() {
-        if (!config.contentElement) {
-            console.warn("CarouselModule: updateTransform called but contentElement is null.");
-            return;
-        }
+        if (!config.contentElement) return;
+        // Rotate the content container based on the current index
         const rotationY = -config.currentIndex * config.angleIncrement;
         config.contentElement.style.transform = `translateZ(-${config.translateZValue}) rotateY(${rotationY}deg)`;
-        // console.log("CarouselModule: Transform updated to:", config.contentElement.style.transform);
     }
 
     function handleWheel(event) {
@@ -49,15 +47,17 @@ const CarouselModule = (function() {
             if (config.currentIndex < config.itemImageUrls.length - 1) {
                 nextIndex++;
             } else {
+                // Reached the end, call callback to switch to the next view
                 if (typeof switchToNextViewCallback === 'function') switchToNextViewCallback();
-                return true;
+                return true; // Indicate that the event was handled for view switching
             }
         } else if (event.deltaY < 0) { // Scrolling up
             if (config.currentIndex > 0) {
                 nextIndex--;
             } else {
+                // Reached the beginning, call callback to switch to the previous view
                 if (typeof switchToPrevViewCallback === 'function') switchToPrevViewCallback();
-                return true;
+                return true; // Indicate that the event was handled for view switching
             }
         }
 
@@ -65,30 +65,17 @@ const CarouselModule = (function() {
             config.currentIndex = nextIndex;
             updateTransform();
         }
-        return true;
+        return true; // Indicate that the event was handled (either for item switch or view switch intent)
     }
 
     return {
         init: function(initialConfig, callbackToNext, callbackToPrev) {
-            console.log("CarouselModule: init called.");
             config = { itemImageUrls: [], translateZValue: '35vw', contentElement: null, shellElement: null, items: [], currentIndex: 0, angleIncrement: 0, ...initialConfig };
             switchToNextViewCallback = callbackToNext;
             switchToPrevViewCallback = callbackToPrev;
-             // Defer setup slightly to ensure DOM elements are definitely there if selectors are passed as strings
-            // However, if elements are passed directly, this isn't strictly needed.
-            // For safety, if elements might not be ready:
-            // setTimeout(() => {
-            //    if (config.contentElement && config.shellElement) {
-            //        setup();
-            //    } else {
-            //        console.error("CarouselModule init deferred: contentElement or shellElement is missing.");
-            //    }
-            // }, 0);
-            // Direct setup if elements are guaranteed:
             if (config.contentElement && config.shellElement) {
                  setup();
             } else {
-                console.error("CarouselModule init: contentElement or shellElement is missing in initialConfig.");
                  if(initialConfig.contentElement) initialConfig.contentElement.innerHTML = '<p style="color:white; text-align:center;">旋转木马组件初始化失败</p>';
             }
         },
@@ -97,21 +84,25 @@ const CarouselModule = (function() {
     };
 })();
 
-// --- AccordionModule (No changes from previous version needed for these bugs) ---
+// --- AccordionModule ---
 const AccordionModule = (function() {
     let config = {};
     let switchToNextViewCallback = null;
     let switchToPrevViewCallback = null;
+
     function setActivePanel(index) {
         if (index < 0 || index >= config.panels.length || !config.panels[index]) return;
+        // Deactivate all panels and activate the selected one
         config.panels.forEach(p => p.classList.remove('active'));
         config.panels[index].classList.add('active');
         config.currentActiveIndex = index;
     }
+
     function setup() {
         if (!config.containerElement) { return; }
         config.panels = [];
-        config.containerElement.innerHTML = '';
+        config.containerElement.innerHTML = ''; // Clear previous panels
+        // Create and append panels
         config.data.forEach((dataItem, index) => {
             const panel = document.createElement('div');
             panel.classList.add('accordion-panel-new');
@@ -126,19 +117,20 @@ const AccordionModule = (function() {
                 setActivePanel(index);
             });
         });
-        if (config.panels.length > 0) setActivePanel(config.currentActiveIndex || 0);
+        if (config.panels.length > 0) setActivePanel(config.currentActiveIndex || 0); // Activate initial panel
     }
+
     function handleWheel(event) {
         if (!config.data || config.data.length === 0) return true;
         let nextIndex = config.currentActiveIndex;
-        if (event.deltaY > 0) {
+        if (event.deltaY > 0) { // Scrolling down
             if (config.currentActiveIndex < config.data.length - 1) {
                 nextIndex++;
             } else {
                 if (typeof switchToNextViewCallback === 'function') switchToNextViewCallback();
                 return true;
             }
-        } else if (event.deltaY < 0) {
+        } else if (event.deltaY < 0) { // Scrolling up
             if (config.currentActiveIndex > 0) {
                 nextIndex--;
             } else {
@@ -151,6 +143,7 @@ const AccordionModule = (function() {
         }
         return true;
     }
+
     return {
         init: function(initialConfig, callbackToNext, callbackToPrev) {
             config = { data: [], containerElement: null, panels: [], currentActiveIndex: 0, ...initialConfig };
@@ -163,7 +156,7 @@ const AccordionModule = (function() {
     };
 })();
 
-// --- DrawerCarouselModule (No changes from previous version needed for these bugs) ---
+// --- DrawerCarouselModule ---
 const DrawerCarouselModule = (function() {
     let config = {};
     let switchToPrevViewCallback = null;
@@ -188,14 +181,12 @@ const DrawerCarouselModule = (function() {
             config.contentAreaElement.style.backgroundImage = `url('${currentData.imageUrl}')`;
         } else {
             config.contentAreaElement.style.backgroundImage = 'none'; // Or a default background
-             // config.contentAreaElement.style.backgroundColor = '#333'; // Example default
         }
         config.currentIndex = index;
     }
 
     function setup() {
         if (!config.navContainerElement || !config.contentAreaElement || !config.data) {
-            console.error("DrawerCarouselModule: Missing required config elements (navContainer, contentArea, or data).");
             return;
         }
         navItems = [];
@@ -215,20 +206,17 @@ const DrawerCarouselModule = (function() {
             // Create Content Item (for text only)
             const contentItem = document.createElement('div');
             contentItem.classList.add('drawer-content-item');
-            // REMOVED IMG TAG FROM HERE
             contentItem.innerHTML = `<h2>${dataItem.title}</h2>
                                      ${dataItem.quote ? `<p class="quote">${dataItem.quote}</p>` : ''}
                                      ${dataItem.description ? `<p>${dataItem.description}</p>` : ''}`;
-            config.contentAreaElement.appendChild(contentItem); // Append text container to contentArea
+            config.contentAreaElement.appendChild(contentItem); 
             contentItems.push(contentItem);
         });
 
         if (config.data.length > 0) {
             setActiveDrawerItem(config.currentIndex || 0);
         } else {
-             // Handle empty data case - clear background
              config.contentAreaElement.style.backgroundImage = 'none';
-             // config.contentAreaElement.style.backgroundColor = '#2c3e50'; // or a default color
         }
     }
 
@@ -257,7 +245,7 @@ const DrawerCarouselModule = (function() {
         init: function(initialConfig, callbackToPrev, callbackToNext) {
             config = { data: [], navContainerElement: null, contentAreaElement: null, currentIndex: 0, ...initialConfig };
             switchToPrevViewCallback = callbackToPrev;
-            config.switchToNextViewCallback = callbackToNext;
+            config.switchToNextViewCallback = callbackToNext; // Store the next callback in config
             setup();
         },
         handleWheel: handleWheel,
@@ -265,22 +253,21 @@ const DrawerCarouselModule = (function() {
     };
 })();
 
-// --- ParallaxModule (No changes from previous version needed for these bugs) ---
+// --- ParallaxModule ---
 const ParallaxModule = (function() {
     let config = {};
     let switchToPrevViewCallback = null;
     let switchToNextViewCallback = null;
     let parallaxBlocks = [];
-    let parallaxContainer = null;
+    let parallaxContainer = null; // This is the .view-section element for parallax
     let parallaxScrollListener = null;
 
     function setup() {
-        parallaxContainer = config.containerElement;
+        parallaxContainer = config.containerElement; // e.g., document.getElementById('parallaxSection')
         if (!parallaxContainer || !config.itemContainerElement) {
-            console.error('视差容器或项目容器元素未找到!');
             return;
         }
-        config.itemContainerElement.innerHTML = '';
+        config.itemContainerElement.innerHTML = ''; // Clear previous items
         parallaxBlocks = [];
 
         config.itemsData.forEach(data => {
@@ -295,59 +282,68 @@ const ParallaxModule = (function() {
             sectionItem.appendChild(block);
             sectionItem.appendChild(textDiv);
             config.itemContainerElement.appendChild(sectionItem);
-            parallaxBlocks.push(block);
+            parallaxBlocks.push(block); // Store the elements that will have their background position animated
         });
 
+        // Remove old listener if re-initializing
         if (parallaxScrollListener && parallaxContainer) {
             parallaxContainer.removeEventListener('scroll', parallaxScrollListener);
         }
-        parallaxScrollListener = handleParallaxEffectScroll;
+        parallaxScrollListener = handleParallaxEffectScroll; // Assign the function reference
         if (parallaxContainer) {
             parallaxContainer.addEventListener('scroll', parallaxScrollListener);
-            handleParallaxEffectScroll();
+            handleParallaxEffectScroll(); // Initial call to set positions
         }
     }
+
     function handleParallaxEffectScroll() {
         if (!parallaxContainer || parallaxBlocks.length === 0) return;
-        const scrollTop = parallaxContainer.scrollTop;
+
+        const scrollTop = parallaxContainer.scrollTop; // Scroll position of the parallax section itself
         const containerHeight = parallaxContainer.clientHeight;
 
         parallaxBlocks.forEach(el => {
-            const parentSectionItem = el.parentElement;
-            const itemRect = parentSectionItem.getBoundingClientRect();
-            const containerRect = parallaxContainer.getBoundingClientRect();
+            const parentSectionItem = el.parentElement; // The .section-item
+            const itemRect = parentSectionItem.getBoundingClientRect(); // Position relative to viewport
+            const containerRect = parallaxContainer.getBoundingClientRect(); // Parallax section's position relative to viewport
+
+            // Calculate item's top position relative to the parallaxContainer's top
             const itemTopRelativeToContainer = itemRect.top - containerRect.top;
 
+            // Check if the item is visible within the parallaxContainer's viewport area
             if (itemRect.bottom > containerRect.top && itemRect.top < containerRect.bottom) {
                 const elementMidPointInContainer = itemTopRelativeToContainer + parentSectionItem.offsetHeight / 2;
                 const containerMidPoint = containerHeight / 2;
                 const difference = elementMidPointInContainer - containerMidPoint;
-                const parallaxFactor = 0.2;
+                const parallaxFactor = 0.2; // How much the background moves relative to scroll
                 const yOffset = -difference * parallaxFactor;
                 el.style.backgroundPosition = `center ${yOffset}px`;
             }
         });
     }
+
     function handleWheel(event) {
-        if (!parallaxContainer) return false;
+        if (!parallaxContainer) return false; // Not handled
 
         const isAtTop = parallaxContainer.scrollTop <= 0;
         const scrollableHeight = parallaxContainer.scrollHeight - parallaxContainer.clientHeight;
+        // Consider "at bottom" if very close to the bottom, to account for subpixel rendering issues
         const isAtBottom = scrollableHeight <= 5 || parallaxContainer.scrollTop >= scrollableHeight - 5;
 
-        if (event.deltaY < 0 && isAtTop) {
+        if (event.deltaY < 0 && isAtTop) { // Scrolling up at the top
             if (typeof switchToPrevViewCallback === 'function') {
                 switchToPrevViewCallback();
-                return true;
+                return true; // Event handled for view switch
             }
-        } else if (event.deltaY > 0 && isAtBottom) {
+        } else if (event.deltaY > 0 && isAtBottom) { // Scrolling down at the bottom
             if (typeof switchToNextViewCallback === 'function') {
                 switchToNextViewCallback();
-                return true;
+                return true; // Event handled for view switch
             }
         }
-        return false;
+        return false; // Event not handled for view switch (allow internal scroll)
     }
+
     return {
         init: function(initialConfig, callbackToPrev, callbackToNext) {
             config = { itemsData: [], containerElement: null, itemContainerElement: null, ...initialConfig };
@@ -357,10 +353,10 @@ const ParallaxModule = (function() {
         },
         handleWheel: handleWheel,
         getContainerElement: function() { return parallaxContainer; },
-        resetScroll: function() {
+        resetScroll: function() { // Method to reset scroll, e.g., when reactivating this view
             if (parallaxContainer) {
                 parallaxContainer.scrollTop = 0;
-                handleParallaxEffectScroll();
+                handleParallaxEffectScroll(); // Update positions after scroll reset
             }
         }
     };
@@ -368,12 +364,48 @@ const ParallaxModule = (function() {
 
 // --- MusicPlayerModule ---
 const MusicPlayerModule = (function() {
-    let audio, playPauseBtn, titleEl, progressBarContainerEl, progressBarEl, nextBtn, prevBtn, currentTimeEl, totalDurationEl, playerContainerEl;
+    let audio, playPauseBtn, titleEl, progressBarContainerEl, progressBarEl, nextBtn, prevBtn, currentTimeEl, totalDurationEl, playerContainerEl, playModeBtn;
     let songs = [];
     let currentSongIdx = 0;
-    let isPlaying = false; // Track playback state internally
+    let isPlaying = false;
     let isDragging = false, dragOffsetX, dragOffsetY;
+    let isRandomPlay = false; // 添加随机播放状态
 
+    // 添加获取下一首歌索引的函数
+    function getNextSongIndex() {
+        if (isRandomPlay) {
+            return Math.floor(Math.random() * songs.length);
+        }
+        return (currentSongIdx + 1) % songs.length;
+    }
+
+    // 添加获取上一首歌索引的函数
+    function getPrevSongIndex() {
+        if (isRandomPlay) {
+            return Math.floor(Math.random() * songs.length);
+        }
+        return (currentSongIdx - 1 + songs.length) % songs.length;
+    }
+
+    // 修改处理下一首歌的函数
+    function handleNextSong() {
+        currentSongIdx = getNextSongIndex();
+        loadSong(currentSongIdx, true);
+    }
+
+    // 修改处理上一首歌的函数
+    function handlePrevSong() {
+        currentSongIdx = getPrevSongIndex();
+        loadSong(currentSongIdx, true);
+    }
+
+    // 添加切换播放模式的函数
+    function togglePlayMode() {
+        isRandomPlay = !isRandomPlay;
+        playModeBtn.innerHTML = isRandomPlay ? 
+            '<i class="fas fa-random"></i>' : 
+            '<i class="fas fa-list-ul"></i>';
+    }
 
     function formatTime(seconds) {
         const minutes = Math.floor(seconds / 60);
@@ -386,8 +418,8 @@ const MusicPlayerModule = (function() {
             const song = songs[songIndex];
             audio.src = song.src;
             titleEl.textContent = song.title;
-            titleEl.title = song.title;
-            audio.load();
+            titleEl.title = song.title; // For tooltip on hover
+            audio.load(); // Important to load the new source
             currentSongIdx = songIndex;
             isPlaying = false; // Reset playback state until play is confirmed
             playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
@@ -396,7 +428,6 @@ const MusicPlayerModule = (function() {
             if (autoPlayAfterLoad) {
                 // Autoplay is tricky. Listen for 'canplaythrough' or 'canplay'
                 const canPlayListener = () => {
-                    console.log("MusicPlayer: Audio ready for song:", songs[currentSongIdx].title);
                     playCurrentSong(); // Try to play once ready
                 };
                 audio.removeEventListener('canplaythrough', canPlayListener); // Remove old listener if any
@@ -408,28 +439,20 @@ const MusicPlayerModule = (function() {
 
     function playCurrentSong() {
         if (!audio.src && songs.length > 0) { // If no src, but songs available, load first then try play
-             console.warn("MusicPlayer: No audio source. Loading song index", currentSongIdx, "and will attempt play.");
              loadSong(currentSongIdx, true); // Load and set flag to play after load
              return;
         }
         if (audio.src) { // Only play if there's a source
-            console.log("MusicPlayer: Attempting to play", audio.src);
             const playPromise = audio.play();
             if (playPromise !== undefined) {
                 playPromise.then(_ => {
-                    console.log("MusicPlayer: Playback started successfully for", audio.src);
                     isPlaying = true;
                     playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
                 }).catch(error => {
-                    console.error("MusicPlayer: Playback failed for", audio.src, ":", error);
                     isPlaying = false;
                     playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-                    // This is often due to browser autoplay policies.
-                    // User interaction (like a click) is usually required to start audio.
                 });
             }
-        } else {
-            console.warn("MusicPlayer: playCurrentSong called but no audio src and no songs to load.");
         }
     }
 
@@ -437,15 +460,11 @@ const MusicPlayerModule = (function() {
     function handlePlayPause() {
         if (isPlaying) {
             audio.pause();
-            // isPlaying = false; // audio 'pause' event will handle this
-            // playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
         } else {
             if (!audio.src && songs.length > 0) {
                  loadSong(currentSongIdx, true); // Load and attempt to play
             } else if (audio.src) {
                  playCurrentSong();
-            } else {
-                console.warn("MusicPlayer: Play/Pause clicked, but no song loaded and no songs in list.");
             }
         }
     }
@@ -466,7 +485,7 @@ const MusicPlayerModule = (function() {
             currentTimeEl.textContent = formatTime(audio.currentTime);
         } else {
             progressBarEl.style.width = `0%`;
-            currentTimeEl.textContent = "0:00";
+            currentTimeEl.textContent = "0:00"; // Or "--:--"
         }
     }
 
@@ -480,35 +499,42 @@ const MusicPlayerModule = (function() {
 
     function makeDraggable() {
         playerContainerEl.addEventListener('mousedown', (e) => {
+            // Prevent dragging if clicking on buttons or progress bar
             if (e.target.closest('button') || e.target.closest('.progress-bar-container')) return;
             isDragging = true;
             const rect = playerContainerEl.getBoundingClientRect();
             dragOffsetX = e.clientX - rect.left;
             dragOffsetY = e.clientY - rect.top;
             playerContainerEl.style.cursor = 'grabbing';
-            document.body.style.userSelect = 'none';
+            document.body.style.userSelect = 'none'; // Prevent text selection during drag
         });
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
-            e.preventDefault();
+            e.preventDefault(); // Prevent default browser drag behavior
             let newLeft = e.clientX - dragOffsetX;
             let newTop = e.clientY - dragOffsetY;
+
+            // Constrain to viewport
             const bodyWidth = document.documentElement.clientWidth;
             const bodyHeight = document.documentElement.clientHeight;
             const playerWidth = playerContainerEl.offsetWidth;
             const playerHeight = playerContainerEl.offsetHeight;
+
             newLeft = Math.max(0, Math.min(newLeft, bodyWidth - playerWidth));
             newTop = Math.max(0, Math.min(newTop, bodyHeight - playerHeight));
+
             playerContainerEl.style.left = newLeft + 'px';
             playerContainerEl.style.top = newTop + 'px';
-            playerContainerEl.style.right = 'auto';
-            playerContainerEl.style.bottom = 'auto';
+            // Important: remove transform if you are using left/top for dragging
+            // Or, adjust transform instead of left/top
+            playerContainerEl.style.right = 'auto'; // Clear conflicting styles
+            playerContainerEl.style.bottom = 'auto'; // Clear conflicting styles
         });
         document.addEventListener('mouseup', () => {
             if (isDragging) {
                 isDragging = false;
                 playerContainerEl.style.cursor = 'grab';
-                document.body.style.userSelect = '';
+                document.body.style.userSelect = ''; // Re-enable text selection
             }
         });
     }
@@ -528,14 +554,12 @@ const MusicPlayerModule = (function() {
             songs = config.songList || [];
 
             if (!audio || !playPauseBtn || !titleEl || !progressBarContainerEl || !progressBarEl || !nextBtn || !prevBtn || !currentTimeEl || !totalDurationEl || !playerContainerEl) {
-                console.error("One or more music player elements not found!");
                 return;
             }
 
             if (songs.length > 0) {
                 loadSong(currentSongIdx, false); // Load first song, but don't autoplay yet
             } else {
-                console.warn("MusicPlayer: No songs in the playlist.");
                 titleEl.textContent = "播放列表为空";
             }
 
@@ -544,147 +568,202 @@ const MusicPlayerModule = (function() {
             nextBtn.addEventListener('click', handleNextSong);
             prevBtn.addEventListener('click', handlePrevSong);
 
-            audio.addEventListener('play', () => {
-                isPlaying = true;
-                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                console.log("MusicPlayer: Event 'play' fired.");
-            });
-            audio.addEventListener('pause', () => {
-                isPlaying = false;
-                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-                console.log("MusicPlayer: Event 'pause' fired.");
-            });
-            audio.addEventListener('ended', handleNextSong);
-            audio.addEventListener('loadedmetadata', () => {
-                if(audio.duration && !isNaN(audio.duration)) {
-                    totalDurationEl.textContent = formatTime(audio.duration);
-                } else {
-                    totalDurationEl.textContent = "0:00";
-                }
-            });
+            audio.addEventListener('play', () => { isPlaying = true; playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; });
+            audio.addEventListener('pause', () => { isPlaying = false; playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; });
+            audio.addEventListener('ended', handleNextSong); // Autoplay next song
+            audio.addEventListener('loadedmetadata', () => { totalDurationEl.textContent = (audio.duration && !isNaN(audio.duration)) ? formatTime(audio.duration) : "0:00"; });
             audio.addEventListener('timeupdate', updateProgressBar);
             progressBarContainerEl.addEventListener('click', handleProgressBarClick);
             makeDraggable();
+
+            // 添加播放模式按钮
+            const controlsDiv = playerContainerEl.querySelector('.player-controls');
+            
+            playModeBtn = document.createElement('button');
+            playModeBtn.innerHTML = '<i class="fas fa-list-ul"></i>';
+            playModeBtn.addEventListener('click', togglePlayMode);
+            controlsDiv.appendChild(playModeBtn);
         },
-        play: playCurrentSong, // Expose this method
+        play: playCurrentSong, 
         pause: () => audio.pause(),
         show: () => playerContainerEl && playerContainerEl.classList.add('visible'),
         hide: () => playerContainerEl && playerContainerEl.classList.remove('visible'),
     };
 })();
 
-// --- EntryPageModule ---
-const EntryPageModule = (function() {
-    let entryPageEl, mainContentEl;
-    let onEnterCallback = null;
-    let hasEntered = false;
-
-    function handleInitialScroll(event) {
-        if (hasEntered) return;
-        if (event.deltaY > 0) {
-            hasEntered = true;
-            if(entryPageEl) entryPageEl.classList.add('hidden');
-            if(mainContentEl) mainContentEl.classList.add('visible');
-            if (typeof onEnterCallback === 'function') {
-                onEnterCallback();
-            }
-            window.removeEventListener('wheel', handleInitialScroll);
-        }
-    }
-    return {
-        init: function(config, callback) {
-            entryPageEl = document.getElementById(config.entryPageId);
-            mainContentEl = document.getElementById(config.mainContentContainerId);
-            onEnterCallback = callback;
-            if (!entryPageEl || !mainContentEl) {
-                console.error("Entry page or main content element not found!");
-                return;
-            }
-            window.addEventListener('wheel', handleInitialScroll, { passive: true });
-        },
-        hasEntered: () => hasEntered
-    };
-})();
-
 // --- AppController (Main Logic) ---
 document.addEventListener('DOMContentLoaded', () => {
-    const unifiedGlobalBackgroundImageUrl = 'https://source.unsplash.com/random/1920x1080/?dark,abstract';
-    const bodyElement = document.body;
+    const blackHoleIframe = document.getElementById('blackHoleIframe');
+    const toggleEditModeButton = document.getElementById('toggleEditModeButton'); 
+    const mainContentContainer = document.getElementById('mainContentContainer');
+    const musicPlayerContainerEl = document.getElementById('musicPlayerContainer');
 
-    // 应用全局背景图和入口页面文字
-    if (typeof APP_CONFIGS !== 'undefined') {
-        if (APP_CONFIGS.globalBackgroundImageUrl) {
-            bodyElement.style.backgroundImage = `url('${APP_CONFIGS.globalBackgroundImageUrl}')`;
-        }
-
-        const entryPageTitleEl = document.querySelector('#entryPage h1');
-        const entryPageSubtitleEl = document.querySelector('#entryPage p');
-        if (APP_CONFIGS.entryPage) {
-            if (entryPageTitleEl && APP_CONFIGS.entryPage.title) {
-                entryPageTitleEl.textContent = APP_CONFIGS.entryPage.title;
-            }
-            if (entryPageSubtitleEl && APP_CONFIGS.entryPage.subtitle) {
-                entryPageSubtitleEl.textContent = APP_CONFIGS.entryPage.subtitle;
-            }
-        }
-    } else {
-        console.error("APP_CONFIGS is not defined. Make sure config.js is loaded correctly and before script.js.");
-        // Fallback texts for entry page if config is missing
-        const entryPageTitleEl = document.querySelector('#entryPage h1');
-        const entryPageSubtitleEl = document.querySelector('#entryPage p');
-        if(entryPageTitleEl) entryPageTitleEl.textContent = "探索之旅";
-        if(entryPageSubtitleEl) entryPageSubtitleEl.textContent = "向下滑动开始";
-    }
-
-
-    let currentViewName = 'carousel';
-    const viewOrder = ['carousel', 'accordion', 'drawerCarousel', 'parallax'];
-    let globalIsThrottled = false;
-    const globalThrottleDelay = 450;
-
-    const viewElements = {
+    let isEditingMode = true; 
+    let currentContentModuleKey = null; 
+    const contentModuleKeys = ['carousel', 'accordion', 'drawerCarousel', 'parallax'];
+    const contentModuleElements = {
         carousel: document.getElementById('carouselSection'),
         accordion: document.getElementById('accordionSection'),
         drawerCarousel: document.getElementById('drawerCarouselSection'),
         parallax: document.getElementById('parallaxSection')
     };
 
-    // --- Configurations (now referencing APP_CONFIGS) ---
-    // 确保 APP_CONFIGS 已加载，否则提供默认空值以避免后续代码出错
-    const resolvedAppConfigs = (typeof APP_CONFIGS !== 'undefined') ? APP_CONFIGS : {
-        musicFiles: [],
-        carousel: { itemImageUrls: [], translateZValue: '25vw' },
-        accordion: { data: [] },
-        drawerCarousel: { data: [] },
-        parallax: { itemsData: [] }
-    };
+    let globalIsThrottled = false;
+    const globalThrottleDelay = 700; // Slightly increased for smoother transitions
+    let modulesInitialized = false;
 
+    // 颜色控制相关
+    const colorPanel = document.getElementById('colorControlPanel');
+    const innerColorInput = document.getElementById('innerColorInput');
+    const outerColorInput = document.getElementById('outerColorInput');
+    const defaultColors1Btn = document.getElementById('defaultColors1');
+    const defaultColors2Btn = document.getElementById('defaultColors2');
+    const resetColorsBtn = document.getElementById('resetColors');
 
-    const carouselInitialConfig = {
-        itemImageUrls: resolvedAppConfigs.carousel.itemImageUrls,
-        translateZValue: resolvedAppConfigs.carousel.translateZValue,
-        contentElement: document.getElementById('carouselContent'),
-        shellElement: document.querySelector('#carouselSection .shell'),
-        currentIndex: 0
-    };
-    const accordionInitialConfig = {
-        data: resolvedAppConfigs.accordion.data,
-        containerElement: document.getElementById('accordionContainerNew'),
-        currentActiveIndex: 0,
-    };
-    const drawerCarouselInitialConfig = {
-        data: resolvedAppConfigs.drawerCarousel.data,
-        navContainerElement: document.getElementById('drawerNavList'),
-        contentAreaElement: document.getElementById('drawerContentArea'),
-        currentIndex: 0,
-    };
-    const parallaxInitialConfig = {
-        itemsData: resolvedAppConfigs.parallax.itemsData,
-        containerElement: document.getElementById('parallaxSection'),
-        itemContainerElement: document.getElementById('parallaxItemContainer')
-    };
-    const musicPlayerConfig = {
-        audioId: 'backgroundMusic',
+    // 初始化时加载保存的颜色或使用默认值
+    function loadSavedColors() {
+        const savedColors = JSON.parse(localStorage.getItem('blackHoleColors') || '{}');
+        innerColorInput.value = savedColors.inner || INNER_COLOR;
+        outerColorInput.value = savedColors.outer || OUTER_COLOR;
+        updateBlackHoleColors();
+    }
+
+    // 保存颜色到localStorage
+    function saveColors() {
+        const colors = {
+            inner: innerColorInput.value,
+            outer: outerColorInput.value
+        };
+        localStorage.setItem('blackHoleColors', JSON.stringify(colors));
+    }
+
+    // 更新黑洞颜色
+    function updateBlackHoleColors() {
+        const iframe = document.getElementById('blackHoleIframe');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({
+                type: 'updateColors',
+                inner: innerColorInput.value,
+                outer: outerColorInput.value
+            }, '*');
+        }
+    }
+
+    // 预设方案按钮事件处理
+    defaultColors1Btn.addEventListener('click', () => {
+        innerColorInput.value = DEFAULT_COLORS_1.inner;
+        outerColorInput.value = DEFAULT_COLORS_1.outer;
+        updateBlackHoleColors();
+        saveColors();
+    });
+
+    defaultColors2Btn.addEventListener('click', () => {
+        innerColorInput.value = DEFAULT_COLORS_2.inner;
+        outerColorInput.value = DEFAULT_COLORS_2.outer;
+        updateBlackHoleColors();
+        saveColors();
+    });
+
+    resetColorsBtn.addEventListener('click', () => {
+        innerColorInput.value = INNER_COLOR;
+        outerColorInput.value = OUTER_COLOR;
+        updateBlackHoleColors();
+        saveColors();
+    });
+
+    // 颜色输入事件处理
+    innerColorInput.addEventListener('input', () => {
+        updateBlackHoleColors();
+        saveColors();
+    });
+
+    outerColorInput.addEventListener('input', () => {
+        updateBlackHoleColors();
+        saveColors();
+    });
+
+    // 初始化时加载保存的颜色
+    loadSavedColors();
+
+    // 在编辑模式下显示颜色面板
+    function setIframeState(isEditing) {
+        if (!blackHoleIframe) return;
+        const scrollIndicator = document.querySelector('.scroll-down-indicator');
+        
+        if (isEditing) {
+            blackHoleIframe.classList.add('is-interactive-fullscreen');
+            blackHoleIframe.classList.remove('is-background-for-content');
+            if (scrollIndicator) scrollIndicator.classList.remove('visible');
+            colorPanel.classList.add('visible');
+        } else {
+            blackHoleIframe.classList.remove('is-interactive-fullscreen');
+            blackHoleIframe.classList.add('is-background-for-content');
+            if (scrollIndicator) scrollIndicator.classList.add('visible');
+            colorPanel.classList.remove('visible');
+        }
+    }
+
+    function updateButtonAppearance() {
+        if (!toggleEditModeButton) return;
+        if (isEditingMode) {
+            toggleEditModeButton.innerHTML = '查看更多 <i class="fas fa-chevron-down"></i>';
+        } else {
+            toggleEditModeButton.innerHTML = '调整背景 <i class="fas fa-magic"></i>';
+        }
+    }
+
+    function activateContentModule(moduleKey, direction = 0) {
+        // Deactivate the current module
+        if (currentContentModuleKey && contentModuleElements[currentContentModuleKey]) {
+            contentModuleElements[currentContentModuleKey].classList.remove('active-view');
+            contentModuleElements[currentContentModuleKey].style.display = 'none';
+        }
+
+        currentContentModuleKey = moduleKey;
+
+        if (contentModuleElements[currentContentModuleKey]) {
+            const activeElement = contentModuleElements[currentContentModuleKey];
+            
+            // Set display style based on module type
+            if (activeElement.id === 'parallaxSection') {
+                activeElement.style.display = 'block';
+            } else {
+                activeElement.style.display = 'flex'; // For carousel, accordion, drawer
+            }
+            
+            // Add active-view class to trigger opacity/visibility
+            // Use rAF to ensure display is set before class for transition
+            requestAnimationFrame(() => {
+                activeElement.classList.add('active-view');
+
+                // Scroll mainContentContainer
+                if (mainContentContainer && mainContentContainer.classList.contains('visible')) {
+                    // Another rAF to ensure class is applied and layout is computed
+                    requestAnimationFrame(() => {
+                        if (contentModuleElements[currentContentModuleKey]) { 
+                            mainContentContainer.scrollTop = contentModuleElements[currentContentModuleKey].offsetTop;
+                        }
+                    });
+                }
+            });
+
+        } else if (moduleKey === null && direction === -1) { // Back to edit mode
+            isEditingMode = true;
+            setIframeState(true);
+            if (mainContentContainer) mainContentContainer.classList.remove('visible');
+            document.documentElement.style.overflowY = 'hidden';
+            document.body.style.overflowY = 'hidden';
+            updateButtonAppearance();
+        }
+    }
+    
+    const resolvedAppConfigs = (typeof APP_CONFIGS !== 'undefined') ? APP_CONFIGS : {};
+    const carouselInitialConfig = {itemImageUrls: resolvedAppConfigs.carousel?.itemImageUrls || [], translateZValue: resolvedAppConfigs.carousel?.translateZValue || '30vw', contentElement: document.getElementById('carouselContent'), shellElement: document.querySelector('#carouselSection .shell'), currentIndex: 0 };
+    const accordionInitialConfig = {data: resolvedAppConfigs.accordion?.data || [], containerElement: document.getElementById('accordionContainerNew'), currentActiveIndex: 0 };
+    const drawerCarouselInitialConfig = {data: resolvedAppConfigs.drawerCarousel?.data || [], navContainerElement: document.getElementById('drawerNavList'), contentAreaElement: document.getElementById('drawerContentArea'), currentIndex: 0 };
+    const parallaxInitialConfig = {itemsData: resolvedAppConfigs.parallax?.itemsData || [], containerElement: document.getElementById('parallaxSection'), itemContainerElement: document.getElementById('parallaxItemContainer') };
+    const musicPlayerConfig = { 
+        audioId: 'backgroundMusic', 
         playPauseButtonId: 'playPauseButton',
         songTitleId: 'songTitle',
         progressBarContainerId: 'progressBarContainer',
@@ -694,96 +773,124 @@ document.addEventListener('DOMContentLoaded', () => {
         currentTimeDisplayId: 'currentTimeDisplay',
         totalDurationDisplayId: 'totalDurationDisplay',
         playerContainerId: 'musicPlayerContainer',
-        songList: resolvedAppConfigs.musicFiles // 使用配置中的音乐列表
-    };
-    const entryPageConfig = { // 这个配置主要用于 EntryPageModule 的 DOM 元素ID
-        entryPageId: 'entryPage',
-        mainContentContainerId: 'mainContentContainer'
+        songList: resolvedAppConfigs.musicFiles || [] 
     };
 
-    // --- Helper Functions (switchToView, navigateView) and Initializations ---
-    // (这些函数和模块初始化代码保持不变，它们现在会使用从 resolvedAppConfigs 中获取数据的 InitialConfig 对象)
-
-    // ... (switchToView, navigateView 函数) ...
-    function switchToView(viewName) {
-        if (!viewElements[viewName] || (currentViewName === viewName && viewElements[viewName].classList.contains('active-view'))) {
-            return;
-        }
-        // console.log(`AppController: Switching from ${currentViewName} to ${viewName}`);
-        if(viewElements[currentViewName]) {
-            viewElements[currentViewName].classList.remove('active-view');
-        }
-        currentViewName = viewName;
-        viewElements[currentViewName].classList.add('active-view');
-        if (viewName === 'parallax' && ParallaxModule.resetScroll) {
-            ParallaxModule.resetScroll();
+        // Fisher-Yates 洗牌算法函数
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]]; // 使用解构赋值交换元素
         }
     }
 
-    function navigateView(direction) {
-        const currentIndex = viewOrder.indexOf(currentViewName);
-        const totalViews = viewOrder.length;
-        // console.log(`AppController: navigateView called. Current: ${currentViewName} (index ${currentIndex}), Direction: ${direction}`);
+    // 打乱 songList 的顺序
+    shuffleArray(musicPlayerConfig.songList);
 
-        if (direction === 1) { // Trying to go Next
-            if (currentIndex < totalViews - 1) {
-                switchToView(viewOrder[currentIndex + 1]);
+    function initializeContentModulesOnce() {
+        if (modulesInitialized) return;
+        CarouselModule.init(carouselInitialConfig, () => activateContentModule(contentModuleKeys[1], 1), () => activateContentModule(null, -1)); 
+        AccordionModule.init(accordionInitialConfig, () => activateContentModule(contentModuleKeys[2], 1), () => activateContentModule(contentModuleKeys[0], -1)); 
+        DrawerCarouselModule.init(drawerCarouselInitialConfig, () => activateContentModule(contentModuleKeys[1], -1), () => activateContentModule(contentModuleKeys[3], 1)); 
+        ParallaxModule.init(parallaxInitialConfig, 
+            () => activateContentModule(contentModuleKeys[2], -1), 
+            () => { /* No scroll indicator to update */ }
+        );
+        MusicPlayerModule.init(musicPlayerConfig);
+        if(musicPlayerContainerEl) musicPlayerContainerEl.classList.add('visible');
+        modulesInitialized = true;
+    }
+
+    if (toggleEditModeButton) {
+        toggleEditModeButton.addEventListener('click', () => {
+            isEditingMode = !isEditingMode; 
+
+            if (isEditingMode) {
+                setIframeState(true); 
+                if (mainContentContainer) mainContentContainer.classList.remove('visible');
+                document.documentElement.style.overflowY = 'hidden'; 
+                document.body.style.overflowY = 'hidden';
+                if (currentContentModuleKey && contentModuleElements[currentContentModuleKey]) {
+                    contentModuleElements[currentContentModuleKey].classList.remove('active-view');
+                    contentModuleElements[currentContentModuleKey].style.display = 'none';
+                }
+                currentContentModuleKey = null; 
             } else {
-                console.log("AppController: Already at the last view. Cannot go next.");
+                // 首次初始化模块时自动播放音乐
+                if (!modulesInitialized) {
+                    initializeContentModulesOnce(); 
+                    MusicPlayerModule.play(); // 添加这行来自动播放音乐
+                } else {
+                    initializeContentModulesOnce();
+                }
+                setIframeState(false); 
+                if (mainContentContainer) mainContentContainer.classList.add('visible');
+                document.documentElement.style.overflowY = 'hidden'; 
+                document.body.style.overflowY = 'hidden';
+
+                if (currentContentModuleKey === null) { 
+                    activateContentModule(contentModuleKeys[0], 0);
+                } else { 
+                    activateContentModule(currentContentModuleKey, 0);
+                }
             }
-        } else if (direction === -1) { // Trying to go Previous
-            if (currentIndex > 0) {
-                switchToView(viewOrder[currentIndex - 1]);
-            } else {
-                console.log("AppController: Already at the first view. Cannot go previous.");
-            }
-        }
+            updateButtonAppearance();
+        });
     }
 
-
-    MusicPlayerModule.init(musicPlayerConfig);
-
-    EntryPageModule.init(entryPageConfig, () => {
-        MusicPlayerModule.show();
-        console.log("AppController: Entry page passed, attempting to play music via MusicPlayerModule.play().");
-        MusicPlayerModule.play();
-        switchToView(currentViewName);
-    });
-
-    // Initialize content modules
-    if (CarouselModule && CarouselModule.init) {
-        CarouselModule.init(carouselInitialConfig, () => navigateView(1), () => navigateView(-1));
-    }
-    if (AccordionModule && AccordionModule.init) {
-        AccordionModule.init(accordionInitialConfig, () => navigateView(1), () => navigateView(-1));
-    }
-    if (DrawerCarouselModule && DrawerCarouselModule.init) {
-        DrawerCarouselModule.init(drawerCarouselInitialConfig, () => navigateView(-1), () => navigateView(1));
-    }
-    if (ParallaxModule && ParallaxModule.init) {
-        ParallaxModule.init(parallaxInitialConfig, () => navigateView(-1), () => navigateView(1));
-    }
-
-    // ... (Global Wheel Event Listener - 保持不变) ...
     window.addEventListener('wheel', (event) => {
-        if (!EntryPageModule.hasEntered() || globalIsThrottled) {
+        if (isEditingMode || globalIsThrottled) { 
             return;
         }
-        if (document.getElementById('musicPlayerContainer') && document.getElementById('musicPlayerContainer').contains(event.target)) {
-            return;
+        if (musicPlayerContainerEl && musicPlayerContainerEl.contains(event.target)) {
+            return; 
         }
+        
+        let targetIsContentArea = mainContentContainer.contains(event.target);
+        let moduleTookAction = false;
 
-        let eventHandledByModule = false;
-        switch (currentViewName) {
-            case 'carousel': if (CarouselModule.handleWheel) eventHandledByModule = CarouselModule.handleWheel(event); break;
-            case 'accordion': if (AccordionModule.handleWheel) eventHandledByModule = AccordionModule.handleWheel(event); break;
-            case 'drawerCarousel': if (DrawerCarouselModule.handleWheel) eventHandledByModule = DrawerCarouselModule.handleWheel(event); break;
-            case 'parallax': if (ParallaxModule.handleWheel) eventHandledByModule = ParallaxModule.handleWheel(event); break;
+        if (currentContentModuleKey) { 
+            switch(currentContentModuleKey) {
+                case 'carousel': 
+                    if (CarouselModule.handleWheel) moduleTookAction = CarouselModule.handleWheel(event);
+                    break;
+                case 'accordion':
+                     if (AccordionModule.handleWheel) moduleTookAction = AccordionModule.handleWheel(event);
+                    break;
+                case 'drawerCarousel':
+                     if (DrawerCarouselModule.handleWheel) moduleTookAction = DrawerCarouselModule.handleWheel(event);
+                    break;
+                case 'parallax':
+                     if (ParallaxModule.handleWheel) moduleTookAction = ParallaxModule.handleWheel(event);
+                     if (!moduleTookAction && targetIsContentArea && contentModuleElements.parallax.contains(event.target)) {
+                         // Allow native scroll for parallax content if it didn't navigate
+                         // Check if the parallax container itself can scroll
+                         const el = contentModuleElements.parallax;
+                         const isScrollable = el.scrollHeight > el.clientHeight;
+                         const isAtTop = el.scrollTop === 0;
+                         const isAtBottom = el.scrollHeight - el.scrollTop === el.clientHeight;
+
+                         if (isScrollable && !((event.deltaY < 0 && isAtTop) || (event.deltaY > 0 && isAtBottom))) {
+                            // If it's scrollable and not at an edge where navigation might occur, let it scroll.
+                            return; 
+                         }
+                     }
+                    break;
+            }
         }
-        if (eventHandledByModule) {
-            event.preventDefault();
+            
+        if(moduleTookAction) { 
+            event.preventDefault(); 
             globalIsThrottled = true;
             setTimeout(() => { globalIsThrottled = false; }, globalThrottleDelay);
         }
     }, { passive: false });
+
+    setIframeState(true); 
+    updateButtonAppearance(); 
+    if(mainContentContainer) mainContentContainer.classList.remove('visible'); 
+    if(musicPlayerContainerEl) musicPlayerContainerEl.classList.remove('visible');
+    document.documentElement.style.overflowY = 'hidden'; 
+    document.body.style.overflowY = 'hidden'; 
+
 });
